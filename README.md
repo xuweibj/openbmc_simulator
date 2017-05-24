@@ -1,1 +1,12 @@
-# openbmc_simulator
+# Simulator for Test
+
+* Create folder for files``mkdir -p simulator``
+
+* Save all files under **simulator** folder
+
+* Run ``chmod +x simulator``
+
+* Run ``./simulator``
+
+For Ubuntu OS, please run ``apt-get update`` first
+
