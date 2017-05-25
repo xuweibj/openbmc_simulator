@@ -11,8 +11,8 @@ Install and Start Simulator
 
 For Ubuntu OS, please run ``apt-get update`` first
 
-Node Definition
----------------
+Node Definition in xCAT
+-----------------------
 
 If the node that simulator runs on as below:
 
