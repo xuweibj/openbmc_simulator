@@ -53,4 +53,5 @@ if [ $? != 0 ]; then
     exit 1
 fi
 
-python $basepath/simulation.py &
+nohup python $basepath/simulation.py &
+
