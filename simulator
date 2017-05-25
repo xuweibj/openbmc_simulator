@@ -1,0 +1,56 @@
+os=`cat /etc/*release*`
+basepath=$(cd `dirname $0`; pwd)
+log_file="/var/log/xcat.openbmc.simulator.log"
+
+if [[ $os =~ "Red Hat" ]] || [[ $os =~ "suse" ]]; then
+    yum install python-devel.ppc64le --nogpgcheck -y
+    if [ $? != 0 ]; then
+        echo "Install python-devel Failed." >> $log_file 
+        exit 1
+    fi
+
+    yum install gcc --nogpgcheck -y
+    if [ $? != 0 ]; then
+        echo "Install gcc Failed." >> $log_file
+        exit 1
+    fi
+
+    yum install https://dl.fedoraproject.org/pub/epel/7/ppc64le/e/epel-release-7-9.noarch.rpm --nogpgcheck -y
+    if [ $? != 0 ]; then
+        echo "Install epel Failed." >> $log_file
+        exit 1
+    fi
+
+    yum install python2-pip.noarch --nogpgcheck -y 
+    if [ $? != 0 ]; then
+        echo "Install python2-pip Failed." >> $log_file
+        exit 1
+    fi
+
+    yum install nc -y
+    if [ $? != 0 ]; then
+        echo "Install nc Failed." >> $log_file
+        exit 1
+    fi
+
+elif [[ $os =~ "ubuntu" ]]; then
+    apt-get install python-pip -y
+    if [ $? != 0 ]; then
+        echo "Install python-pip Failed." >> $log_file
+        exit 1
+    fi
+fi
+
+pip install eventlet
+if [ $? != 0 ]; then
+    echo "Install eventlet Failed." >> $log_file
+    exit 1
+fi
+
+pip install pecan
+if [ $? != 0 ]; then
+    echo "Install pecan Failed." >> $log_file
+    exit 1
+fi
+
+python $basepath/simulation.py &

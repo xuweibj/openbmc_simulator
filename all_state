@@ -1,0 +1,19 @@
+power begin
+xyz.openbmc_project.State.Host.HostState.Running
+xyz.openbmc_project.State.Host.Transition.On
+power end
+
+boot begin
+CD/DVD
+boot end
+
+network begin
+ip
+10.3.5.99
+netmask
+255.255.0.0
+gateway
+10.0.0.102
+vlan
+10.3.5.4
+network end
