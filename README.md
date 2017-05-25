@@ -1,5 +1,7 @@
 # Simulator for Test
 
+Supported Arch: PPC64LE
+
 * Create folder for files``mkdir -p simulator``
 
 * Save all files under **simulator** folder
