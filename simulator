@@ -1,3 +1,5 @@
+#!/bin/bash
+
 os=`cat /etc/*release*`
 basepath=$(cd `dirname $0`; pwd)
 log_file="/var/log/xcat.openbmc.simulator.log"
@@ -53,5 +55,4 @@ if [ $? != 0 ]; then
     exit 1
 fi
 
-nohup python $basepath/simulation.py &
-
+nohup python $basepath/simulation.py >> $log_file 2>&1 &
