@@ -29,8 +29,10 @@ class HOSTTRANSController(rest.RestController):
 
         if data == 'xyz.openbmc_project.State.Host.Transition.Off':
             lines[data_index] = 'xyz.openbmc_project.State.Host.HostState.Off' + '\n'
+            lines[data_index+1] = 'xyz.openbmc_project.State.Host.Transition.Off' + '\n'
         else :
             lines[data_index] = 'xyz.openbmc_project.State.Host.HostState.Running' + '\n'
+            lines[data_index+1] = 'xyz.openbmc_project.State.Host.Transition.On' + '\n'
 
         try:
             file_object.writelines(lines)
