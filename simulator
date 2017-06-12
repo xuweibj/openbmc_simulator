@@ -1,58 +1,168 @@
 #!/bin/bash
 
+usage="Usage:\n
+\t-c: Cleanup IPs configuration. If not set it, will setup openbmc simulator environment and start simulator\n
+\t-n: NIC name which want to configure IPs on\n
+\t-r: IPs want to configure on NIC. The format is as '10.[1|{1.10}].[1|{1..200}].[1|{1..200}]'\n
+\n
+Example:\n
+\t./simulator -n eth0 -r 10.1.1.{1..10}\n
+\t./simulator -c -n eth0 -r 10.1.1.{1..10}\n
+\n
+Note: When setup if no -n or -r input, the simulator will not configure IPs\n"
+
+while getopts "hcn:r:" opt
+do
+    case $opt in
+        h)
+            echo -e $usage
+            exit 0
+            ;;
+        c)
+            flag_c=true
+            ;;
+        n)
+            nic=$OPTARG
+            ;;
+        r)
+            ip_s=$OPTARG
+            ;;
+        ?)
+            exit 1
+            ;;
+    esac
+done
+
+process=`ps aux | grep "simulator" | grep "python" | awk -F ' ' '{print $2}'`
+if [ $process ]; then
+    echo "Kill existed simulator process"
+    kill $process
+fi
+
+if [[ $* =~ "-c" ]]; then
+    flag_c=true
+fi
+
+if [[ $* =~ "-n" ]] && [ -z $nic ]; then
+    echo "Please input as example format. './simulator [-c] -n <NIC> -r <IP range>'"
+    exit 0
+fi
+
+if [ $nic ] && [ $ip_s ]; then
+    nic_info=`ip -4 -o a | grep $nic | awk '{print $4}' | head -n 1`
+    if [ -z $nic_info ]; then
+        echo "Invalid NIC name"
+        exit 1
+    fi
+
+    not_ip=1
+    if [[ $ip_s =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+        OIFS=$IFS
+        IFS='.'
+        ip=($ip_s)
+        IFS=$OIFS
+        [[ ${ip[0]} -le 255 && ${ip[1]} -le 255 \
+            && ${ip[2]} -le 255 && ${ip[3]} -le 255 ]]
+        not_ip=$?
+    fi
+
+    if [ $not_ip != 0 ]; then
+        echo "Invalid IP. Supported format: 10.[1|{1.10}].[1|{1..200}].[1|{1..200}]"
+        exit 1
+    fi
+
+    for i in "$@";do
+        if [ $i = $ip_s ]; then
+            ip_flag=true
+        fi
+        if [ $ip_flag ] && [[ $i =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+            ip_range=("${ip_range[@]}" $i)
+        fi
+    done
+
+elif [ $flag_c ]; then
+    echo "No IP configuration to cleanup ---- No NIC or IPs input"
+    exit 0 
+fi
+
+if [ $flag_c ]; then
+    echo "Start to cleanup IP configuration"
+    for i in ${ip_range[@]}; do
+        ip addr del $i dev $nic 1>/dev/null 2>&1
+    done
+    echo "DONE"
+    exit 
+else 
+    echo "Start to setup openbmc simulator environment"
+fi
+
 os=`cat /etc/*release*`
 basepath=$(cd `dirname $0`; pwd)
-log_file="/var/log/xcat.openbmc.simulator.log"
 
 if [[ $os =~ "Red Hat" ]] || [[ $os =~ "suse" ]]; then
-    yum install python-devel.ppc64le --nogpgcheck -y
+    yum install python-devel.ppc64le --nogpgcheck -y 1>/dev/null 2>&1
     if [ $? != 0 ]; then
-        echo "Install python-devel Failed." >> $log_file 
+        echo "Install python-devel Failed." 
         exit 1
     fi
 
-    yum install gcc --nogpgcheck -y
+    yum install gcc --nogpgcheck -y 1>/dev/null 2>&1
     if [ $? != 0 ]; then
-        echo "Install gcc Failed." >> $log_file
+        echo "Install gcc Failed." 
         exit 1
     fi
 
-    yum install https://dl.fedoraproject.org/pub/epel/7/ppc64le/e/epel-release-7-9.noarch.rpm --nogpgcheck -y
+    yum install https://dl.fedoraproject.org/pub/epel/7/ppc64le/e/epel-release-7-9.noarch.rpm --nogpgcheck -y 1>/dev/null 2>&1
     if [ $? != 0 ]; then
-        echo "Install epel Failed." >> $log_file
+        echo "Install epel Failed." 
         exit 1
     fi
 
-    yum install python2-pip.noarch --nogpgcheck -y 
+    yum install python2-pip.noarch --nogpgcheck -y 1>/dev/null 2>&1 
     if [ $? != 0 ]; then
-        echo "Install python2-pip Failed." >> $log_file
+        echo "Install python2-pip Failed." 
         exit 1
     fi
 
-    yum install nc -y
+    yum install nc -y 1>/dev/null 2>&1
     if [ $? != 0 ]; then
-        echo "Install nc Failed." >> $log_file
+        echo "Install nc Failed." 
         exit 1
     fi
 
 elif [[ $os =~ "ubuntu" ]]; then
-    apt-get install python-pip -y
+    apt-get install python-pip -y 1>/dev/null 2>&1
     if [ $? != 0 ]; then
-        echo "Install python-pip Failed." >> $log_file
+        echo "Install python-pip Failed." 
         exit 1
     fi
 fi
 
-pip install eventlet
+pip install eventlet 1>/dev/null 2>&1
 if [ $? != 0 ]; then
-    echo "Install eventlet Failed." >> $log_file
+    echo "Install eventlet Failed." 
     exit 1
 fi
 
-pip install pecan
+pip install pecan 1>/dev/null 2>&1
 if [ $? != 0 ]; then
-    echo "Install pecan Failed." >> $log_file
+    echo "Install pecan Failed." 
     exit 1
 fi
 
-nohup python $basepath/simulation.py >> $log_file 2>&1 &
+nic_num=0
+ip_num=${#ip_range[@]}
+if [ $ip_num != 0 ]; then
+    echo "Start to configrue $ip_num IPs on NIC $nic"
+fi
+
+for i in ${ip_range[@]}; do
+    ifconfig $nic:$nic_num $i up
+    if [ $? != 0 ]; then
+        echo "Configure IP $i on NIC $nic Failed"
+    fi
+    ((nic_num++))
+done
+
+nohup python $basepath/simulation.py 1>/dev/null 2>&1 &
+echo "Simulator is Running"

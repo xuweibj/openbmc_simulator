@@ -6,6 +6,7 @@ from pecan.hooks import PecanHook
 import json
 import string
 import os,sys
+import shutil
 
 path = sys.path[0]
 data_file = path + '/all_state'
@@ -13,7 +14,13 @@ data_file = path + '/all_state'
 class HOSTTRANSController(rest.RestController):
     @pecan.expose('json')
     def put(self, data):
-        file_object = open(data_file, 'r+')
+        req_ip = pecan.request.server_name
+        data_file_ip = data_file + '_' + req_ip
+
+        if not os.path.exists(data_file_ip):
+            shutil.copy(data_file, data_file_ip)
+
+        file_object = open(data_file_ip, 'r+')
 
         try:
             lines = file_object.readlines()
@@ -25,7 +32,7 @@ class HOSTTRANSController(rest.RestController):
                 data_index = index + 1
                 break 
 
-        file_object = open(data_file, 'w+')
+        file_object = open(data_file_ip, 'w+')
 
         if data == 'xyz.openbmc_project.State.Host.Transition.Off':
             lines[data_index] = 'xyz.openbmc_project.State.Host.HostState.Off' + '\n'
@@ -48,7 +55,13 @@ class ATTRController(rest.RestController):
 class HOST0Controller(rest.RestController):
     @pecan.expose('json')
     def get(self):
-        file_object = open(data_file, 'r+')
+        req_ip = pecan.request.server_name
+        data_file_ip = data_file + '_' + req_ip
+
+        if not os.path.exists(data_file_ip):
+            shutil.copy(data_file, data_file_ip)
+
+        file_object = open(data_file_ip, 'r+')
 
         try:
             lines = file_object.readlines()
@@ -74,7 +87,13 @@ class STATEController(rest.RestController):
 class BOOTController(rest.RestController):
     @pecan.expose('json')
     def put(self, data):
-        file_object = open(data_file, 'r+')
+        req_ip = pecan.request.server_name
+        data_file_ip = data_file + '_' + req_ip
+
+        if not os.path.exists(data_file_ip):
+            shutil.copy(data_file, data_file_ip)
+
+        file_object = open(data_file_ip, 'r+')
 
         try:
             lines = file_object.readlines()
@@ -86,7 +105,7 @@ class BOOTController(rest.RestController):
                 data_index = index + 1
                 break
 
-        file_object = open(data_file, 'w+')
+        file_object = open(data_file_ip, 'w+')
 
         if data == 'cd':
             lines[data_index] = 'CD/DVD\n'
@@ -107,7 +126,13 @@ class BOOTController(rest.RestController):
 
     @pecan.expose('json')
     def get(self):
-        file_object = open(data_file, 'r+')
+        req_ip = pecan.request.server_name
+        data_file_ip = data_file + '_' + req_ip
+
+        if not os.path.exists(data_file_ip):
+            shutil.copy(data_file, data_file_ip)
+
+        file_object = open(data_file_ip, 'r+')
 
         try:
             lines = file_object.readlines()
@@ -127,7 +152,13 @@ class BOOTController(rest.RestController):
 class CONFIGController(rest.RestController):
     @pecan.expose('json')
     def put(self, data):
-        file_object = open(data_file)
+        req_ip = pecan.request.server_name
+        data_file_ip = data_file + '_' + req_ip
+
+        if not os.path.exists(data_file_ip):
+            shutil.copy(data_file, data_file_ip)
+
+        file_object = open(data_file_ip, 'r+')
 
         dict_net = {}
         data_list = data.split(',')
@@ -155,7 +186,7 @@ class CONFIGController(rest.RestController):
                 if dict_net.has_key('vlan'):
                     lines[index+1] = dict_net['vlan'] + '\n'
 
-        file_object = open(data_file, 'w+')
+        file_object = open(data_file_ip, 'w+')
 
         try:
             file_object.writelines(lines)
@@ -167,7 +198,13 @@ class CONFIGController(rest.RestController):
 
     @pecan.expose('json')
     def get(self):
-        file_object = open(data_file)
+        req_ip = pecan.request.server_name
+        data_file_ip = data_file + '_' + req_ip
+
+        if not os.path.exists(data_file_ip):
+            shutil.copy(data_file, data_file_ip)
+
+        file_object = open(data_file_ip, 'r+')
 
         try:
             lines = file_object.readlines()
@@ -222,9 +259,15 @@ class CHASSISController(rest.RestController):
 
 class SYSTEMController(rest.RestController):
     @pecan.expose('json')
-    def get(self):
+    def get_data(self):
         status_data = {'SerialNumber' : '0000000000000000', 'Model' : '2', 'PartNumber' : '0000000000000000' , 'PrettyName' : '', 'Manufacturer' : ''}
         return status_data
+
+    @pecan.expose('json')
+    def get(self):
+        data = self.get_data()
+        out_data = {"status" : "ok", "data" : data, "message" : "200 OK"}
+        return out_data
 
     chassis = CHASSISController()
 
