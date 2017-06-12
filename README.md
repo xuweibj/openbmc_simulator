@@ -7,7 +7,7 @@ Install and Start Simulator
 
 * Clone this repo
 
-* Run ``./simulator [-c] [-n <NIC>] [-r <IP range>]`` 
+* Run ``./simulator [-c] [-n <NIC> -r <IP range>]`` 
 
 For Ubuntu OS, please run ``apt-get update`` first
 
@@ -24,7 +24,9 @@ Example:
 
 Setup environment and Start simulator ``./simulator -n eth0 -r 10.1.1.{1..10}``
 
-Clear environment: ``./simulator -c -n eth0 -r 10.1.1.{1..10}``
+Clear environment: 
+
+    # ./simulator -c -n eth0 -r 10.1.1.{1..10}
 
 Node Definition in xCAT
 -----------------------
