@@ -7,9 +7,24 @@ Install and Start Simulator
 
 * Clone this repo
 
-* Run ``./simulator``
+* Run ``./simulator [-c] [-n <NIC>] [-r <IP range>]`` 
 
 For Ubuntu OS, please run ``apt-get update`` first
+
+Options
+-------
+
+**-c**: Cleanup IPs configuration. If not set it, will setup openbmc simulator environment and start simulator
+
+**-n**: NIC name which want to configure IPs on
+
+**-r**: IPs want to configure on NIC. The format is as '10.[1|{1.10}].[1|{1..200}].[1|{1..200}]'
+
+Example:
+
+Setup environment and Start simulator ``./simulator -n eth0 -r 10.1.1.{1..10}``
+
+Clear environment: ``./simulator -c -n eth0 -r 10.1.1.{1..10}``
 
 Node Definition in xCAT
 -----------------------
