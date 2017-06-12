@@ -24,9 +24,8 @@ Example:
 
 Setup environment and Start simulator ``./simulator -n eth0 -r 10.1.1.{1..10}``
 
-Clear environment: 
+Clear environment: ``./simulator -c -n eth0 -r 10.1.1.{1..10}``
 
-    # ./simulator -c -n eth0 -r 10.1.1.{1..10}
 
 Node Definition in xCAT
 -----------------------
