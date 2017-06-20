@@ -118,19 +118,19 @@ if [[ $os =~ "Red Hat" ]] || [[ $os =~ "suse" ]]; then
         exit 1
     fi
 
-    yum install https://dl.fedoraproject.org/pub/epel/7/ppc64le/e/epel-release-7-9.noarch.rpm --nogpgcheck -y 1>/dev/null 2>&1
-    if [ $? != 0 ]; then
-        echo "Install epel Failed." 
-        exit 1
-    fi
-
     epel_check=`rpm -qa | grep epel`
     if [ -z $epel_check ]; then
-        yum install python2-pip.noarch --nogpgcheck -y 1>/dev/null 2>&1 
+        yum install https://dl.fedoraproject.org/pub/epel/7/ppc64le/e/epel-release-7-9.noarch.rpm --nogpgcheck -y 1>/dev/null 2>&1
         if [ $? != 0 ]; then
-            echo "Install python2-pip Failed." 
+            echo "Install epel Failed." 
             exit 1
         fi
+    fi
+
+    yum install python2-pip.noarch --nogpgcheck -y 1>/dev/null 2>&1 
+    if [ $? != 0 ]; then
+        echo "Install python2-pip Failed." 
+        exit 1
     fi
 
     yum install nc -y 1>/dev/null 2>&1
