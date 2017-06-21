@@ -149,7 +149,73 @@ class BOOTController(rest.RestController):
 
         return out_data 
 
-class CONFIGController(rest.RestController):
+class IPV4Controller(rest.RestController):
+    @pecan.expose('json')
+    def get_data(self):
+        req_ip = pecan.request.server_name
+        data_file_ip = data_file + '_' + req_ip
+
+        if not os.path.exists(data_file_ip):
+            shutil.copy(data_file, data_file_ip)
+
+        file_object = open(data_file_ip, 'r+')
+
+        try:
+            lines = file_object.readlines()
+        finally:
+            file_object.close()
+
+        for index in range(len(lines)):
+            if lines[index] == 'network begin\n':
+                ip_addr = lines[index+2].strip()
+                netmask = lines[index+4].strip()
+                gateway = lines[index+6].strip()
+                vlan = lines[index+8].strip()
+            if lines[index] == 'network end\n':
+                break
+
+        status_data = {"Address" : ip_addr, "Gateway" : gateway, 
+                       "Netmask" : netmask, "VLAN" : vlan,
+                       "origin" : "xyz.openbmc_project.Network.IP.AddressOrigin.Static", 
+                       "PrefixLength" : 24, "Type" : "xyz.openbmc_project.Network.IP.Protocol.IPv4"}
+        return status_data
+
+    @pecan.expose('json')
+    def get(self):
+        data = self.get_data()
+        out_data = {"status" : "ok", "data" : data, "message" : "200 OK"}
+        return out_data
+
+class IPV4BController(rest.RestController):
+    @pecan.expose('json')
+    def get_data(self):
+        status_data = {"Address" : "9.3.23.30", "Gateway" : "0.0.0.0",
+                       "Netmask" : "255.255.255.0", "VLAN" : "9.3.23.30",
+                       "origin" : "xyz.openbmc_project.Network.IP.AddressOrigin.Static",
+                       "PrefixLength" : 23, "Type" : "xyz.openbmc_project.Network.IP.Protocol.IPv4"}
+        return status_data
+
+    @pecan.expose('json')
+    def get(self):
+        data = self.get_data()
+        out_data = {"status" : "ok", "data" : data, "message" : "200 OK"}
+        return out_data
+
+class INTERFACEController(rest.RestController):
+    @pecan.expose('json')
+    def get_data(self):
+        status_data = {"AutoNeg" : 0, "DHCPEnabled" : 0,
+                       "DomainName" : [], "InterfaceName" : "eth0",
+                       "MACAddress" : "70:E2:84:14:28:76", "Nameservers" : []}
+        return status_data
+
+    @pecan.expose('json')
+    def get(self):
+        data = self.get_data()
+        out_data = {"status" : "ok", "data" : data, "message" : "200 OK"}
+        return out_data
+
+class NETWORKController(rest.RestController):
     @pecan.expose('json')
     def put(self, data):
         req_ip = pecan.request.server_name
@@ -197,33 +263,20 @@ class CONFIGController(rest.RestController):
         return out_data
 
     @pecan.expose('json')
-    def get(self):
-        req_ip = pecan.request.server_name
-        data_file_ip = data_file + '_' + req_ip
+    def get(self, arg):
+        if arg == 'enumerate':
+            interface_data = INTERFACEController().get_data()
+            ipv4_data1 = IPV4Controller().get_data()
+            ipv4_data2 = IPV4BController().get_data()
 
-        if not os.path.exists(data_file_ip):
-            shutil.copy(data_file, data_file_ip)
-
-        file_object = open(data_file_ip, 'r+')
-
-        try:
-            lines = file_object.readlines()
-        finally:
-            file_object.close()
-
-        for index in range(len(lines)):
-            if lines[index] == 'network begin\n':
-                text = {lines[index+1].strip() : lines[index+2].strip(),
-                        lines[index+3].strip() : lines[index+4].strip(),
-                        lines[index+5].strip() : lines[index+6].strip(),
-                        lines[index+7].strip() : lines[index+8].strip()} 
-            if lines[index] == 'network end\n':
-                break
-
-        status_data = text
+        status_data = {"/xyz/openbmc_project/network/eth0" : interface_data, 
+                       "/xyz/openbmc_project/network/eth0/ipv4/31f4ce8b" : ipv4_data1,
+                       "/xyz/openbmc_project/network/eth0/ipv4/e9767624" : ipv4_data2} 
         out_data = {"status" : "ok", "data" : status_data, "message" : "200 OK"}
 
         return out_data
+
+    ipv4 = IPV4Controller()
 
 class MTRBRDController(rest.RestController):
     def get_data(self):
@@ -379,7 +432,7 @@ class LOGGINGController(rest.RestController):
 class OPENBMCController(rest.RestController):
     state = STATEController()
     boot =BOOTController()
-    config = CONFIGController()
+    network = NETWORKController()
     inventory = INVENTORYController()
     software = SOFTWAREController()
     logging = LOGGINGController()
