@@ -5,11 +5,24 @@ from pecan import rest,response
 from pecan.hooks import PecanHook
 import json
 import string
-import os,sys
+import os,sys,getopt
 import shutil
+import random
+import time
 
 path = sys.path[0]
 data_file = path + '/all_state'
+delay_type = ''
+delay_time = 0
+
+def delay_response():
+    if delay_type == 'constant':
+        print "Delay time is: ", delay_time
+        time.sleep( delay_time )
+    elif delay_type == 'random':
+        delay = random.randint(0,delay_time)
+        print "Delay time is: ", delay
+        time.sleep( delay ) 
 
 class HOSTTRANSController(rest.RestController):
     @pecan.expose('json')
@@ -47,6 +60,7 @@ class HOSTTRANSController(rest.RestController):
             file_object.close()
 
         out_data = {"status" : "ok", "message" : "200 OK"}
+        delay_response()
         return out_data
 
 class ATTRController(rest.RestController):
@@ -76,7 +90,8 @@ class HOST0Controller(rest.RestController):
 
         status_data = {"CurrentHostState" : text, "RequestedHostTransition" : trans}
         out_data = {"status" : "ok", "data" : status_data, "message" : "200 OK"}
-        
+
+        delay_response()
         return out_data
 
     attr = ATTRController()
@@ -122,6 +137,7 @@ class BOOTController(rest.RestController):
             file_object.close()
 
         out_data = {"status" : "ok", "message" : "200 OK"}
+        delay_response()
         return out_data
 
     @pecan.expose('json')
@@ -146,7 +162,7 @@ class BOOTController(rest.RestController):
 
         status_data = {"BootMedia" : text}
         out_data = {"status" : "ok", "data" : status_data, "message" : "200 OK"}
-
+        delay_response()
         return out_data 
 
 class IPV4Controller(rest.RestController):
@@ -184,6 +200,7 @@ class IPV4Controller(rest.RestController):
     def get(self):
         data = self.get_data()
         out_data = {"status" : "ok", "data" : data, "message" : "200 OK"}
+        delay_response()
         return out_data
 
 class IPV4BController(rest.RestController):
@@ -199,6 +216,7 @@ class IPV4BController(rest.RestController):
     def get(self):
         data = self.get_data()
         out_data = {"status" : "ok", "data" : data, "message" : "200 OK"}
+        delay_response()
         return out_data
 
 class INTERFACEController(rest.RestController):
@@ -213,6 +231,7 @@ class INTERFACEController(rest.RestController):
     def get(self):
         data = self.get_data()
         out_data = {"status" : "ok", "data" : data, "message" : "200 OK"}
+        delay_response()
         return out_data
 
 class NETWORKController(rest.RestController):
@@ -260,6 +279,7 @@ class NETWORKController(rest.RestController):
             file_object.close()
 
         out_data = {"status" : "ok", "message" : "200 OK"}
+        delay_response()
         return out_data
 
     @pecan.expose('json')
@@ -273,7 +293,7 @@ class NETWORKController(rest.RestController):
                        "/xyz/openbmc_project/network/eth0/ipv4/31f4ce8b" : ipv4_data1,
                        "/xyz/openbmc_project/network/eth0/ipv4/e9767624" : ipv4_data2} 
         out_data = {"status" : "ok", "data" : status_data, "message" : "200 OK"}
-
+        delay_response()
         return out_data
 
     ipv4 = IPV4Controller()
@@ -287,6 +307,7 @@ class MTRBRDController(rest.RestController):
     def get(self):
         data = self.get_data()
         out_data = {"status" : "ok", "data" : data, "message" : "200 OK"}
+        delay_response()
         return out_data    
 
 class DIMMController(rest.RestController):
@@ -320,6 +341,7 @@ class SYSTEMController(rest.RestController):
     def get(self):
         data = self.get_data()
         out_data = {"status" : "ok", "data" : data, "message" : "200 OK"}
+        delay_response()
         return out_data
 
     chassis = CHASSISController()
@@ -347,6 +369,7 @@ class INVENTORYController(rest.RestController):
                 '/xyz/openbmc_project/inventory/system' : system_data, 
                 '/xyz/openbmc_project/inventory/system/device' : device_data}
             out_data = {"status" : "ok", "data" : all_data, "message" : "200 OK"}
+            delay_response()
             return out_data
 
     system = SYSTEMController()
@@ -367,6 +390,7 @@ class SOFTWAREController(rest.RestController):
         if arg == 'enumerate':
             firm_data = FIRMController().get()
             out_data = {"status" : "ok", "data" : firm_data, "message" : "200 OK"}
+            delay_response()
             return out_data
 
 class FANController(rest.RestController):
@@ -395,6 +419,7 @@ class SENSORSController(rest.RestController):
             all_data = {'/xyz/openbmc_project/sensors/fan_tach/fan0' : fan_data,
                         '/xyz/openbmc_project/sensors/temperature/pcie' :  pcie_data} 
             out_data = {"status" : "ok", "data" : all_data, "message" : "200 OK"}
+            delay_response()
             return out_data
 
 
@@ -402,6 +427,7 @@ class CLEARController(rest.RestController):
     @pecan.expose('json')
     def post(self, data):
         out_data = {"status" : "ok", "message" : "200 OK"}
+        delay_response()
         return out_data
 
 class ACTIONController(rest.RestController):
@@ -425,6 +451,7 @@ class LOGGINGController(rest.RestController):
         if arg == 'enumerate':
             entry_data = ENTRYController().get()
             out_data = {"status" : "ok", "data" : entry_data, "message" : "200 OK"}
+            delay_response()
             return out_data
 
     action = ACTIONController()
@@ -450,7 +477,7 @@ class LOGINController(rest.RestController):
             description = "Invalid username or password"
             out_data = {"status" : "error", "data" : {"description" : description}, "message" : "401 Unauthorized"}
             pecan.response.status = 401
-
+        delay_response()
         return out_data
 
 class Root(object):
@@ -466,7 +493,26 @@ def _make_app():
     app = pecan.make_app(**config)
     return app
  
-def main():
+def main(argv):
+    global delay_time, delay_type
+    try:
+        opts, args = getopt.getopt(argv, "d:t:")
+    except getopt.GetoptError:
+        print 'Error'
+        sys.exit(2)
+
+    for opt, arg in opts:
+        if opt == '-d':
+            delay_type = arg
+        elif opt == '-t':
+            delay_time = arg
+
+    delay_time = int(delay_time)
+    if (delay_type):
+        if (delay_type != 'constant') and (delay_type != 'random'):
+            print "Only constant and random are supported"
+            sys.exit (1)
+
     os.system('nc -l 2200 &')
     eventlet.monkey_patch()
     app = _make_app()
@@ -475,4 +521,4 @@ def main():
                                   keyfile=path + '/server.key', server_side=False), app)
  
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])
