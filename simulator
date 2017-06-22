@@ -1,22 +1,33 @@
 #!/bin/bash
 
 usage="Usage:\n
-\t-c: Cleanup IPs configuration. If not set it, will setup openbmc simulator environment and start simulator\n
-\t-n: NIC name which want to configure IPs on\n
-\t-r: IPs want to configure on NIC. The format is as '10.[1|{1.10}].[1|{1..200}].[1|{1..200}]'\n
+\t-c: Cleanup IPs configuration. If not set it, will setup openbmc simulator environment and start simulator.\n
+\t-d: Delay response type, supported parameter: random, constant. \n
+\t-t: Delay response time, must be used with -d. If delay type is random, the parameter is the max value. The delay time will be random between 0 and input pamameter.\n
+\t-n: NIC name which want to configure IPs on.\n
+\t-r: IPs want to configure on NIC. The format is as '10.[1|{1.10}].[1|{1..200}].[1|{1..200}]'.\n
 \n
 Example:\n
 \t./simulator -n eth0 -r 10.1.1.{1..10}\n
 \t./simulator -c -n eth0 -r 10.1.1.{1..10}\n
+\t./simulator -d random -t 10\n
 \n
-Note: When setup if no -n or -r input, the simulator will not configure IPs\n"
+Note: When setup if no -n or -r input, the simulator will not configure IPs\n
+      '-d/-t' could be used when start simulator\n
+      If use option with -r, please put -r at the last\n"
 
-while getopts "hcn:r:" opt
+while getopts "hd:t:cn:r:" opt
 do
     case $opt in
         h)
             echo -e $usage
             exit 0
+            ;;
+        d)
+            delay_type=$OPTARG
+            ;;
+        t)
+            delay_time=$OPTARG
             ;;
         c)
             flag_c=true
@@ -102,6 +113,12 @@ else
     echo "Start to setup openbmc simulator environment"
 fi
 
+if [ $delay_type ] && [ $delay_time ]; then
+    delay_string="-d $delay_type -t $delay_time"
+else
+    echo "No delay type or delay time, will not delay response"
+fi
+
 os=`cat /etc/*release*`
 basepath=$(cd `dirname $0`; pwd)
 
@@ -173,5 +190,5 @@ for i in ${ip_range[@]}; do
     ((nic_num++))
 done
 
-nohup python $basepath/simulation.py 1>/dev/null 2>&1 &
+nohup python -u $basepath/simulation.py $delay_string 2>&1 & 
 echo "Simulator is Running"
