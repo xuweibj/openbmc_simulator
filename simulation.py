@@ -122,14 +122,7 @@ class BOOTController(rest.RestController):
 
         file_object = open(data_file_ip, 'w+')
 
-        if data == 'cd':
-            lines[data_index] = 'CD/DVD\n'
-        elif data == 'hd':
-            lines[data_index] = 'Hard Drive\n'
-        elif data == 'net':
-            lines[data_index] = 'Network\n'
-        else:
-            lines[data_index] = 'boot override inactive\n'
+        lines[data_index] = data + '\n'
 
         try:
             file_object.writelines(lines)
@@ -160,7 +153,7 @@ class BOOTController(rest.RestController):
                 text = lines[index +1].strip() 
                 break
 
-        status_data = {"BootMedia" : text}
+        status_data = {"BootSource" : text}
         out_data = {"status" : "ok", "data" : status_data, "message" : "200 OK"}
         delay_response()
         return out_data 
@@ -458,7 +451,7 @@ class LOGGINGController(rest.RestController):
 
 class OPENBMCController(rest.RestController):
     state = STATEController()
-    boot =BOOTController()
+    boot = BOOTController()
     network = NETWORKController()
     inventory = INVENTORYController()
     software = SOFTWAREController()

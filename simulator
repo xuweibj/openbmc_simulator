@@ -190,5 +190,5 @@ for i in ${ip_range[@]}; do
     ((nic_num++))
 done
 
-nohup python -u $basepath/simulation.py $delay_string 1>/dev/null 2>&1 & 
+nohup python -u $basepath/simulation.py $delay_string > debug.log 2>&1 &
 echo "Simulator is Running"
