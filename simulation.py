@@ -470,7 +470,6 @@ class LOGINController(rest.RestController):
             description = "Invalid username or password"
             out_data = {"status" : "error", "data" : {"description" : description}, "message" : "401 Unauthorized"}
             pecan.response.status = 401
-        delay_response()
         return out_data
 
 class Root(object):
