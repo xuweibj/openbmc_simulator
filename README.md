@@ -18,7 +18,7 @@ Options
 
 **-d**: Delay response type, supported parameter: random, constant.
 
-**-t**: Delay response time, must be used with -d. If delay type is random, the parameter is the max value. The delay time will be random between 0 and input pamameter.
+**-t**: Delay response time, must be used with -d. If delay type is random, the parameter is the max value. The delay time will be random between 0 and input pamameter. Format is "xxmxx"
 
 **-n**: NIC name which want to configure IPs on
 

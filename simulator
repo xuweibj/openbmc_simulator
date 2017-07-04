@@ -114,7 +114,10 @@ else
 fi
 
 if [ $delay_type ] && [ $delay_time ]; then
-    delay_string="-d $delay_type -t $delay_time"
+    minute=`echo "$delay_time" | awk -F 'm' '{print $1}'`
+    second=`echo "$delay_time" | awk -F 'm' '{print $2}'`
+    delay_second=$((minute*60+second))
+    delay_string="-d $delay_type -t $delay_second"
 else
     echo "No delay type or delay time, will not delay response"
 fi
