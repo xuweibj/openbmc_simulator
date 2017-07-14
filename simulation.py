@@ -41,18 +41,23 @@ class HOSTTRANSController(rest.RestController):
             file_object.close()
 
         for index in range(len(lines)):
-            if lines[index] == 'power begin\n':
+            if lines[index] == 'host begin\n':
                 data_index = index + 1
-                break 
+            if lines[index] == 'chassis begin\n':
+                chassis_index = index + 1
 
         file_object = open(data_file_ip, 'w+')
 
         if data == 'xyz.openbmc_project.State.Host.Transition.Off':
             lines[data_index] = 'xyz.openbmc_project.State.Host.HostState.Off' + '\n'
             lines[data_index+1] = 'xyz.openbmc_project.State.Host.Transition.Off' + '\n'
+            lines[chassis_index] = 'xyz.openbmc_project.State.Chassis.PowerState.Off' + '\n'
+            lines[chassis_index+1] = 'xyz.openbmc_project.State.Chassis.Transition.Off' + '\n'
         else :
             lines[data_index] = 'xyz.openbmc_project.State.Host.HostState.Running' + '\n'
             lines[data_index+1] = 'xyz.openbmc_project.State.Host.Transition.On' + '\n'
+            lines[chassis_index] = 'xyz.openbmc_project.State.Chassis.PowerState.On' + '\n'
+            lines[chassis_index+1] = 'xyz.openbmc_project.State.Chassis.Transition.Off' + '\n'
 
         try:
             file_object.writelines(lines)
@@ -63,12 +68,22 @@ class HOSTTRANSController(rest.RestController):
         delay_response()
         return out_data
 
-class ATTRController(rest.RestController):
-    RequestedHostTransition = HOSTTRANSController()
-
-class HOST0Controller(rest.RestController):
+class BMCTRANSController(rest.RestController):
     @pecan.expose('json')
-    def get(self):
+    def put(self, data):
+        req_ip = pecan.request.server_name
+        data_file_ip = data_file + '_' + req_ip
+
+        if not os.path.exists(data_file_ip):
+            shutil.copy(data_file, data_file_ip)
+
+        out_data = {"status" : "ok", "message" : "200 OK"}
+        delay_response()
+        return out_data
+
+class POWERTRANSController(rest.RestController):
+    @pecan.expose('json')
+    def put(self, data):
         req_ip = pecan.request.server_name
         data_file_ip = data_file + '_' + req_ip
 
@@ -83,20 +98,156 @@ class HOST0Controller(rest.RestController):
             file_object.close()
 
         for index in range(len(lines)):
-            if lines[index] == 'power begin\n':
+            if lines[index] == 'chassis begin\n':
+                chassis_index = index + 1
+                break
+
+        file_object = open(data_file_ip, 'w+')
+
+        if data == 'xyz.openbmc_project.State.Chassis.Transition.Off':
+            lines[chassis_index] = 'xyz.openbmc_project.State.Chassis.PowerState.Off' + '\n'
+            lines[chassis_index+1] = 'xyz.openbmc_project.State.Chassis.Transition.Off' + '\n'
+
+        try:
+            file_object.writelines(lines)
+        finally:
+            file_object.close()
+        
+        out_data = {"status" : "ok", "message" : "200 OK"}
+        delay_response()
+        return out_data
+
+class ATTRController(rest.RestController):
+    RequestedHostTransition = HOSTTRANSController()
+    RequestedBMCTransition = BMCTRANSController()
+    RequestedPowerTransition = POWERTRANSController()
+
+class BMC0Controller(rest.RestController):
+    @pecan.expose('json')
+    def get_data(self):
+        req_ip = pecan.request.server_name
+        data_file_ip = data_file + '_' + req_ip
+
+        if not os.path.exists(data_file_ip):
+            shutil.copy(data_file, data_file_ip)
+
+        file_object = open(data_file_ip, 'r+')
+
+        try:
+            lines = file_object.readlines()
+        finally:
+            file_object.close()
+
+        for index in range(len(lines)):
+            if lines[index] == 'bmc begin\n':
+                text = lines[index+1].strip()
+                trans = lines[index+2].strip()
+                break
+
+        status_data = {"CurrentBMCState" : text, "RequestedBMCTransition" : trans}
+
+        delay_response()
+        return status_data
+
+    @pecan.expose('json')
+    def get(self):
+        data = self.get_data()
+        out_data = {"status" : "ok", "data" : data, "message" : "200 OK"}
+        delay_response()
+        return out_data
+
+    attr = ATTRController()
+
+class CHASSIS0Controller(rest.RestController):
+    @pecan.expose('json')
+    def get_data(self):
+        req_ip = pecan.request.server_name
+        data_file_ip = data_file + '_' + req_ip
+
+        if not os.path.exists(data_file_ip):
+            shutil.copy(data_file, data_file_ip)
+
+        file_object = open(data_file_ip, 'r+')
+
+        try:
+            lines = file_object.readlines()
+        finally:
+            file_object.close()
+
+        for index in range(len(lines)):
+            if lines[index] == 'chassis begin\n':
+                text = lines[index+1].strip()
+                trans = lines[index+2].strip()
+                break
+
+        status_data = {"CurrentPowerState" : text, "RequestedPowerTransition" : trans}
+
+        delay_response()
+        return status_data
+
+    @pecan.expose('json')
+    def get(self):
+        data = self.get_data()
+        out_data = {"status" : "ok", "data" : data, "message" : "200 OK"}
+        delay_response()
+        return out_data
+
+    attr = ATTRController()
+
+class HOST0Controller(rest.RestController):
+    @pecan.expose('json')
+    def get_data(self):
+        req_ip = pecan.request.server_name
+        data_file_ip = data_file + '_' + req_ip
+
+        if not os.path.exists(data_file_ip):
+            shutil.copy(data_file, data_file_ip)
+
+        file_object = open(data_file_ip, 'r+')
+
+        try:
+            lines = file_object.readlines()
+        finally:
+            file_object.close()
+
+        for index in range(len(lines)):
+            if lines[index] == 'host begin\n':
                 text = lines[index+1].strip()
                 trans = lines[index+2].strip()
                 break
 
         status_data = {"CurrentHostState" : text, "RequestedHostTransition" : trans}
-        out_data = {"status" : "ok", "data" : status_data, "message" : "200 OK"}
 
+        delay_response()
+        return status_data
+
+    @pecan.expose('json')
+    def get(self):
+        data = self.get_data()
+        out_data = {"status" : "ok", "data" : data, "message" : "200 OK"}
         delay_response()
         return out_data
 
     attr = ATTRController()
 
 class STATEController(rest.RestController):
+    @pecan.expose('json')
+    def get(self, arg):
+        if arg == 'enumerate':
+            bmc_state = BMC0Controller().get_data()
+            chassis_state = CHASSIS0Controller().get_data()
+            host_state = HOST0Controller().get_data()
+
+        status_data = {"/xyz/openbmc_project/state/bmc0" : bmc_state,
+                       "/xyz/openbmc_project/state/chassis0" : chassis_state,
+                       "/xyz/openbmc_project/state/host0" : host_state}
+        out_data = {"status" : "ok", "data" : status_data, "message" : "200 OK"}
+        delay_response()
+        return out_data 
+
+
+    bmc0 = BMC0Controller()
+    chassis0 = CHASSIS0Controller()
     host0 = HOST0Controller()
 
 class BOOTController(rest.RestController):
