@@ -1,7 +1,20 @@
-power begin
+host begin
 xyz.openbmc_project.State.Host.HostState.Running
 xyz.openbmc_project.State.Host.Transition.On
-power end
+host end
+
+
+chassis begin
+xyz.openbmc_project.State.Chassis.PowerState.On
+xyz.openbmc_project.State.Chassis.Transition.Off
+chassis end
+
+
+bmc begin
+xyz.openbmc_project.State.BMC.BMCState.Ready
+xyz.openbmc_project.State.BMC.Transition.None
+bmc end
+
 
 boot begin
 CD/DVD
