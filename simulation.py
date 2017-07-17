@@ -146,7 +146,6 @@ class BMC0Controller(rest.RestController):
 
         status_data = {"CurrentBMCState" : text, "RequestedBMCTransition" : trans}
 
-        delay_response()
         return status_data
 
     @pecan.expose('json')
@@ -182,7 +181,6 @@ class CHASSIS0Controller(rest.RestController):
 
         status_data = {"CurrentPowerState" : text, "RequestedPowerTransition" : trans}
 
-        delay_response()
         return status_data
 
     @pecan.expose('json')
@@ -218,7 +216,6 @@ class HOST0Controller(rest.RestController):
 
         status_data = {"CurrentHostState" : text, "RequestedHostTransition" : trans}
 
-        delay_response()
         return status_data
 
     @pecan.expose('json')
@@ -230,17 +227,47 @@ class HOST0Controller(rest.RestController):
 
     attr = ATTRController()
 
+class ALLSTATEController(rest.RestController):
+    @pecan.expose('json')
+    def get_data(self):
+        req_ip = pecan.request.server_name
+        data_file_ip = data_file + '_' + req_ip
+
+        if not os.path.exists(data_file_ip):
+            shutil.copy(data_file, data_file_ip)
+
+        file_object = open(data_file_ip, 'r+')
+
+        try:
+            lines = file_object.readlines()
+        finally:
+            file_object.close()
+
+        for index in range(len(lines)):
+            if lines[index] == 'host begin\n':
+                host_text = lines[index+1].strip()
+                host_trans = lines[index+2].strip()
+            if lines[index] == 'bmc begin\n':
+                bmc_text = lines[index+1].strip()
+                bmc_trans = lines[index+2].strip()
+            if lines[index] == 'chassis begin\n':
+                chassis_text = lines[index+1].strip()
+                chassis_trans = lines[index+2].strip()
+
+        chassis_state = {"CurrentPowerState" : chassis_text, "RequestedPowerTransition" : chassis_trans}
+        bmc_state = {"CurrentBMCState" : bmc_text, "RequestedBMCTransition" : bmc_trans}
+        host_state = {"CurrentHostState" : host_text, "RequestedHostTransition" : host_trans} 
+        status_data = {"/xyz/openbmc_project/state/bmc0" : bmc_state,
+                       "/xyz/openbmc_project/state/chassis0" : chassis_state,
+                       "/xyz/openbmc_project/state/host0" : host_state}
+        return status_data
+
 class STATEController(rest.RestController):
     @pecan.expose('json')
     def get(self, arg):
         if arg == 'enumerate':
-            bmc_state = BMC0Controller().get_data()
-            chassis_state = CHASSIS0Controller().get_data()
-            host_state = HOST0Controller().get_data()
+            status_data = ALLSTATEController().get_data()
 
-        status_data = {"/xyz/openbmc_project/state/bmc0" : bmc_state,
-                       "/xyz/openbmc_project/state/chassis0" : chassis_state,
-                       "/xyz/openbmc_project/state/host0" : host_state}
         out_data = {"status" : "ok", "data" : status_data, "message" : "200 OK"}
         delay_response()
         return out_data 
