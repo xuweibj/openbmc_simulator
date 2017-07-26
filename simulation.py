@@ -192,6 +192,71 @@ class CHASSIS0Controller(rest.RestController):
 
     attr = ATTRController()
 
+class BOOTSRCController(rest.RestController):
+    @pecan.expose('json')
+    def put(self, data):
+        req_ip = pecan.request.server_name
+        data_file_ip = data_file + '_' + req_ip
+
+        if not os.path.exists(data_file_ip):
+            shutil.copy(data_file, data_file_ip)
+
+        file_object = open(data_file_ip, 'r+')
+
+        try:
+            lines = file_object.readlines()
+        finally:
+            file_object.close()
+
+        for index in range(len(lines)):
+            if lines[index] == 'boot begin\n':
+                data_index = index + 1
+                break
+
+        file_object = open(data_file_ip, 'w+')
+
+        lines[data_index] = data + '\n'
+
+        try:
+            file_object.writelines(lines)
+        finally:
+            file_object.close()
+
+        out_data = {"status" : "ok", "message" : "200 OK"}
+        delay_response()
+        return out_data
+
+class BOOTATTRController(rest.RestController):
+    BootSource = BOOTSRCController()
+
+class BOOTController(rest.RestController):
+    @pecan.expose('json')
+    def get(self):
+        req_ip = pecan.request.server_name
+        data_file_ip = data_file + '_' + req_ip
+
+        if not os.path.exists(data_file_ip):
+            shutil.copy(data_file, data_file_ip)
+
+        file_object = open(data_file_ip, 'r+')
+
+        try:
+            lines = file_object.readlines()
+        finally:
+            file_object.close()
+
+        for index in range(len(lines)):
+            if lines[index] == 'boot begin\n':
+                text = lines[index +1].strip()
+                break
+
+        status_data = {"BootSource" : text}
+        out_data = {"status" : "ok", "data" : status_data, "message" : "200 OK"}
+        delay_response()
+        return out_data
+
+    attr = BOOTATTRController()
+
 class HOST0Controller(rest.RestController):
     @pecan.expose('json')
     def get_data(self):
@@ -276,65 +341,6 @@ class STATEController(rest.RestController):
     bmc0 = BMC0Controller()
     chassis0 = CHASSIS0Controller()
     host0 = HOST0Controller()
-
-class BOOTController(rest.RestController):
-    @pecan.expose('json')
-    def put(self, data):
-        req_ip = pecan.request.server_name
-        data_file_ip = data_file + '_' + req_ip
-
-        if not os.path.exists(data_file_ip):
-            shutil.copy(data_file, data_file_ip)
-
-        file_object = open(data_file_ip, 'r+')
-
-        try:
-            lines = file_object.readlines()
-        finally:
-            file_object.close()
-
-        for index in range(len(lines)):
-            if lines[index] == 'boot begin\n':
-                data_index = index + 1
-                break
-
-        file_object = open(data_file_ip, 'w+')
-
-        lines[data_index] = data + '\n'
-
-        try:
-            file_object.writelines(lines)
-        finally:
-            file_object.close()
-
-        out_data = {"status" : "ok", "message" : "200 OK"}
-        delay_response()
-        return out_data
-
-    @pecan.expose('json')
-    def get(self):
-        req_ip = pecan.request.server_name
-        data_file_ip = data_file + '_' + req_ip
-
-        if not os.path.exists(data_file_ip):
-            shutil.copy(data_file, data_file_ip)
-
-        file_object = open(data_file_ip, 'r+')
-
-        try:
-            lines = file_object.readlines()
-        finally:
-            file_object.close()
-
-        for index in range(len(lines)):
-            if lines[index] == 'boot begin\n':
-                text = lines[index +1].strip() 
-                break
-
-        status_data = {"BootSource" : text}
-        out_data = {"status" : "ok", "data" : status_data, "message" : "200 OK"}
-        delay_response()
-        return out_data 
 
 class IPV4Controller(rest.RestController):
     @pecan.expose('json')
@@ -505,7 +511,7 @@ class CHASSISController(rest.RestController):
 class SYSTEMController(rest.RestController):
     @pecan.expose('json')
     def get_data(self):
-        status_data = {'SerialNumber' : '0000000000000000', 'Model' : '2', 'PartNumber' : '0000000000000000' , 'PrettyName' : '', 'Manufacturer' : ''}
+        status_data = {'SerialNumber' : '00TEST00', 'Model' : '2', 'PartNumber' : 'OPENBMC', 'PrettyName' : '', 'Manufacturer' : ''}
         return status_data
 
     @pecan.expose('json')
@@ -627,14 +633,20 @@ class LOGGINGController(rest.RestController):
 
     action = ACTIONController()
 
+class CNLHOST0Controller(rest.RestController):
+    boot_source = BOOTController()
+
+class CONTROLController(rest.RestController):
+    host0 = CNLHOST0Controller()
+
 class OPENBMCController(rest.RestController):
     state = STATEController()
-    boot = BOOTController()
     network = NETWORKController()
     inventory = INVENTORYController()
     software = SOFTWAREController()
     logging = LOGGINGController()
     sensors = SENSORSController()
+    control = CONTROLController()
 
 class XYZController(rest.RestController): 
     openbmc_project = OPENBMCController()
