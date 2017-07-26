@@ -17,7 +17,7 @@ bmc end
 
 
 boot begin
-CD/DVD
+xyz.openbmc_project.Control.Boot.Source.Sources.Default
 boot end
 
 network begin
