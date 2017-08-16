@@ -511,7 +511,9 @@ class CHASSISController(rest.RestController):
 class SYSTEMController(rest.RestController):
     @pecan.expose('json')
     def get_data(self):
-        status_data = {'SerialNumber' : '00TEST00', 'Model' : '2', 'PartNumber' : 'OPENBMC', 'PrettyName' : '', 'Manufacturer' : ''}
+        req_ip = pecan.request.server_name
+        serial = req_ip.replace('.','')
+        status_data = {'SerialNumber' : serial, 'Model' : 'OPENBMC', 'PartNumber' : 'SIMULATOR', 'PrettyName' : '', 'Manufacturer' : ''}
         return status_data
 
     @pecan.expose('json')
