@@ -50,12 +50,6 @@ if [ $process ]; then
     kill $process
 fi
 
-process_2200=`ps aux | grep "2200" | grep "nc" | awk -F ' ' '{print $2}'`
-if [ $process_2200 ]; then
-    echo "Kill existed 2200 listen process"
-    kill $process_2200
-fi
-
 if [[ $* =~ "-c" ]]; then
     flag_c=true
 fi
