@@ -16,9 +16,16 @@ xyz.openbmc_project.State.BMC.Transition.None
 bmc end
 
 
+boot one time begin
+1
+xyz.openbmc_project.Control.Boot.Source.Sources.Default
+boot one time end
+
+
 boot begin
 xyz.openbmc_project.Control.Boot.Source.Sources.Default
 boot end
+
 
 network begin
 ip

@@ -24,6 +24,8 @@ def delay_response():
         print "Delay time is: ", delay
         time.sleep( delay ) 
 
+#-------------------- SIMULATOR FOR RPOWER --------------------#
+
 class HOSTTRANSController(rest.RestController):
     @pecan.expose('json')
     def put(self, data):
@@ -192,71 +194,6 @@ class CHASSIS0Controller(rest.RestController):
 
     attr = ATTRController()
 
-class BOOTSRCController(rest.RestController):
-    @pecan.expose('json')
-    def put(self, data):
-        req_ip = pecan.request.server_name
-        data_file_ip = data_file + '_' + req_ip
-
-        if not os.path.exists(data_file_ip):
-            shutil.copy(data_file, data_file_ip)
-
-        file_object = open(data_file_ip, 'r+')
-
-        try:
-            lines = file_object.readlines()
-        finally:
-            file_object.close()
-
-        for index in range(len(lines)):
-            if lines[index] == 'boot begin\n':
-                data_index = index + 1
-                break
-
-        file_object = open(data_file_ip, 'w+')
-
-        lines[data_index] = data + '\n'
-
-        try:
-            file_object.writelines(lines)
-        finally:
-            file_object.close()
-
-        out_data = {"status" : "ok", "message" : "200 OK"}
-        delay_response()
-        return out_data
-
-class BOOTATTRController(rest.RestController):
-    BootSource = BOOTSRCController()
-
-class BOOTController(rest.RestController):
-    @pecan.expose('json')
-    def get(self):
-        req_ip = pecan.request.server_name
-        data_file_ip = data_file + '_' + req_ip
-
-        if not os.path.exists(data_file_ip):
-            shutil.copy(data_file, data_file_ip)
-
-        file_object = open(data_file_ip, 'r+')
-
-        try:
-            lines = file_object.readlines()
-        finally:
-            file_object.close()
-
-        for index in range(len(lines)):
-            if lines[index] == 'boot begin\n':
-                text = lines[index +1].strip()
-                break
-
-        status_data = {"BootSource" : text}
-        out_data = {"status" : "ok", "data" : status_data, "message" : "200 OK"}
-        delay_response()
-        return out_data
-
-    attr = BOOTATTRController()
-
 class HOST0Controller(rest.RestController):
     @pecan.expose('json')
     def get_data(self):
@@ -333,151 +270,20 @@ class STATEController(rest.RestController):
         if arg == 'enumerate':
             status_data = ALLSTATEController().get_data()
 
-        out_data = {"status" : "ok", "data" : status_data, "message" : "200 OK"}
-        delay_response()
-        return out_data 
+            out_data = {"status" : "ok", "data" : status_data, "message" : "200 OK"}
+            delay_response()
+            return out_data 
 
 
     bmc0 = BMC0Controller()
     chassis0 = CHASSIS0Controller()
     host0 = HOST0Controller()
 
-class IPV4Controller(rest.RestController):
-    @pecan.expose('json')
-    def get_data(self):
-        req_ip = pecan.request.server_name
-        data_file_ip = data_file + '_' + req_ip
-
-        if not os.path.exists(data_file_ip):
-            shutil.copy(data_file, data_file_ip)
-
-        file_object = open(data_file_ip, 'r+')
-
-        try:
-            lines = file_object.readlines()
-        finally:
-            file_object.close()
-
-        for index in range(len(lines)):
-            if lines[index] == 'network begin\n':
-                ip_addr = lines[index+2].strip()
-                netmask = lines[index+4].strip()
-                gateway = lines[index+6].strip()
-                vlan = lines[index+8].strip()
-            if lines[index] == 'network end\n':
-                break
-
-        status_data = {"Address" : ip_addr, "Gateway" : gateway, 
-                       "Netmask" : netmask, "VLAN" : vlan,
-                       "origin" : "xyz.openbmc_project.Network.IP.AddressOrigin.Static", 
-                       "PrefixLength" : 24, "Type" : "xyz.openbmc_project.Network.IP.Protocol.IPv4"}
-        return status_data
-
-    @pecan.expose('json')
-    def get(self):
-        data = self.get_data()
-        out_data = {"status" : "ok", "data" : data, "message" : "200 OK"}
-        delay_response()
-        return out_data
-
-class IPV4BController(rest.RestController):
-    @pecan.expose('json')
-    def get_data(self):
-        status_data = {"Address" : "9.3.23.30", "Gateway" : "0.0.0.0",
-                       "Netmask" : "255.255.255.0", "VLAN" : "9.3.23.30",
-                       "origin" : "xyz.openbmc_project.Network.IP.AddressOrigin.Static",
-                       "PrefixLength" : 23, "Type" : "xyz.openbmc_project.Network.IP.Protocol.IPv4"}
-        return status_data
-
-    @pecan.expose('json')
-    def get(self):
-        data = self.get_data()
-        out_data = {"status" : "ok", "data" : data, "message" : "200 OK"}
-        delay_response()
-        return out_data
-
-class INTERFACEController(rest.RestController):
-    @pecan.expose('json')
-    def get_data(self):
-        status_data = {"AutoNeg" : 0, "DHCPEnabled" : 0,
-                       "DomainName" : [], "InterfaceName" : "eth0",
-                       "MACAddress" : "70:E2:84:14:28:76", "Nameservers" : []}
-        return status_data
-
-    @pecan.expose('json')
-    def get(self):
-        data = self.get_data()
-        out_data = {"status" : "ok", "data" : data, "message" : "200 OK"}
-        delay_response()
-        return out_data
-
-class NETWORKController(rest.RestController):
-    @pecan.expose('json')
-    def put(self, data):
-        req_ip = pecan.request.server_name
-        data_file_ip = data_file + '_' + req_ip
-
-        if not os.path.exists(data_file_ip):
-            shutil.copy(data_file, data_file_ip)
-
-        file_object = open(data_file_ip, 'r+')
-
-        dict_net = {}
-        data_list = data.split(',')
-        for string in data_list:
-            info = string.split(': ')
-            key = info[0]
-            dict_net[key] = info[1]
-
-        try:
-            lines = file_object.readlines()
-        finally:
-            file_object.close()
-
-        for index in range(len(lines)):
-            if lines[index] == 'ip\n':
-                if dict_net.has_key('ip'):
-                    lines[index+1] = dict_net['ip'] + '\n'
-            if lines[index] == 'netmask\n':
-                if dict_net.has_key('netmask'):
-                    lines[index+1] = dict_net['netmask'] + '\n'
-            if lines[index] == 'gateway\n':
-                if dict_net.has_key('gateway'):
-                    lines[index+1] = dict_net['gateway'] + '\n'
-            if lines[index] == 'vlan\n':
-                if dict_net.has_key('vlan'):
-                    lines[index+1] = dict_net['vlan'] + '\n'
-
-        file_object = open(data_file_ip, 'w+')
-
-        try:
-            file_object.writelines(lines)
-        finally:
-            file_object.close()
-
-        out_data = {"status" : "ok", "message" : "200 OK"}
-        delay_response()
-        return out_data
-
-    @pecan.expose('json')
-    def get(self, arg):
-        if arg == 'enumerate':
-            interface_data = INTERFACEController().get_data()
-            ipv4_data1 = IPV4Controller().get_data()
-            ipv4_data2 = IPV4BController().get_data()
-
-        status_data = {"/xyz/openbmc_project/network/eth0" : interface_data, 
-                       "/xyz/openbmc_project/network/eth0/ipv4/31f4ce8b" : ipv4_data1,
-                       "/xyz/openbmc_project/network/eth0/ipv4/e9767624" : ipv4_data2} 
-        out_data = {"status" : "ok", "data" : status_data, "message" : "200 OK"}
-        delay_response()
-        return out_data
-
-    ipv4 = IPV4Controller()
+#-------------------- SIMULATOR FOR RINV --------------------#
 
 class MTRBRDController(rest.RestController):
     def get_data(self):
-        status_data = {'Model' : 'SIMULATER', 'PartNumber' : '00VK525', 'SerialNumber' : 'Y130UF72701M'}
+        status_data = {'Model' : 'SIMULATER', 'PartNumber' : '00VK525', 'SerialNumber' : 'Y130UF72701M', 'Present' : 1}
         return status_data
 
     @pecan.expose('json')
@@ -490,13 +296,13 @@ class MTRBRDController(rest.RestController):
 class DIMMController(rest.RestController):
     @pecan.expose('json')
     def get(self):
-        status_data = {'PartNumber' : '', 'SerialNumber' : '0x15d27a18' , 'Model' : '36ASF4G72PZ-2G6D1' , 'Version' : '0x31' , 'Manufacturer' : '0x2c80'}
+        status_data = {'PartNumber' : '', 'SerialNumber' : '0x15d27a18' , 'Model' : '36ASF4G72PZ-2G6D1' , 'Version' : '0x31' , 'Manufacturer' : '0x2c80', 'Present' : 1}
         return status_data
 
 class CPUController(rest.RestController):
     @pecan.expose('json')
     def get(self):
-        status_data = {'SerialNumber' : 'YA3933800321' , 'PrettyName' : 'PROCESSOR MODULE' , 'PartNumber' : '01HL966' , 'Version' : '10' , 'Manufacturer' : 'IBM'}
+        status_data = {'SerialNumber' : 'YA3933800321' , 'PrettyName' : 'PROCESSOR MODULE' , 'PartNumber' : '01HL966' , 'Version' : '10' , 'Manufacturer' : 'IBM', 'Present' : 1}
         return status_data
 
 class COREController(rest.RestController):
@@ -513,7 +319,7 @@ class SYSTEMController(rest.RestController):
     def get_data(self):
         req_ip = pecan.request.server_name
         serial = req_ip.replace('.','')
-        status_data = {'SerialNumber' : serial, 'Model' : 'OPENBMC', 'PartNumber' : 'SIMULATOR', 'PrettyName' : '', 'Manufacturer' : ''}
+        status_data = {'SerialNumber' : serial, 'Model' : 'OPENBMC', 'PartNumber' : 'SIMULATOR', 'PrettyName' : '', 'Manufacturer' : '', 'Present' : 1}
         return status_data
 
     @pecan.expose('json')
@@ -528,7 +334,7 @@ class SYSTEMController(rest.RestController):
 class DEVICEController(rest.RestController):
     @pecan.expose('json')
     def get(self):
-        status_data = {'deviceid' : '0x01', 'guiduuid' : '0x0001', 'mprom' : '1024'}
+        status_data = {'deviceid' : '0x01', 'guiduuid' : '0x0001', 'mprom' : '1024', 'Present' : 1}
         return status_data
 
 class INVENTORYController(rest.RestController):
@@ -539,7 +345,7 @@ class INVENTORYController(rest.RestController):
             dimm_data = DIMMController().get()
             cpu_data = CPUController().get()
             core_data = COREController().get() 
-            system_data = SYSTEMController().get()
+            system_data = SYSTEMController().get_data()
             device_data = DEVICEController().get()
             all_data = {'/xyz/openbmc_project/inventory/system/chassis/motherboard' : mtrbrd_data, 
                 '/xyz/openbmc_project/inventory/system/chassis/motherboard/dimm1' : dimm_data, 
@@ -556,11 +362,16 @@ class INVENTORYController(rest.RestController):
 class FIRMController(rest.RestController):
     @pecan.expose('json')
     def get(self):
-        data = {'Activation' : 'xyz.openbmc_project.Software.Activation.Activations.Active',
-            'Purpose' : 'xyz.openbmc_project.Software.Version.VersionPurpose.BMC',
-             'RequestedActivation' : 'xyz.openbmc_project.Software.Activation.RequestedActivations.None',
-            'Version' : 'v1.99.5-20-gabef2cb'}
-        url_data = {'/xyz/openbmc_project/software/b5310f74' : data}
+        bmc_data = {"Version" :  "ibm-v1.99.10-0-r11-0-g9c65260",
+                "Purpose" : "xyz.openbmc_project.Software.Version.VersionPurpose.BMC",
+                "Priority" : 0,
+                "Activation" : "xyz.openbmc_project.Software.Activation.Activations.Active"}
+        host_data = {"Purpose" : "xyz.openbmc_project.Software.Version.VersionPurpose.Host",
+                     "Activation" :  "xyz.openbmc_project.Software.Activation.Activations.Active",
+                     "Version" :  "IBM-witherspoon-redbud-ibm-OP9_v1.19_1.33",
+                     "Priority" : 0}
+        url_data = {'/xyz/openbmc_project/software/9e55358e' : bmc_data,
+                    '/xyz/openbmc_project/software/221d9020' : host_data}
         return url_data
 
 class SOFTWAREController(rest.RestController):
@@ -601,6 +412,7 @@ class SENSORSController(rest.RestController):
             delay_response()
             return out_data
 
+#-------------------- SIMULATOR FOR REVENTLOG --------------------#
 
 class CLEARController(rest.RestController):
     @pecan.expose('json')
@@ -635,20 +447,257 @@ class LOGGINGController(rest.RestController):
 
     action = ACTIONController()
 
+#-------------------- SIMULATOR FOR RBEACON --------------------#
+
+class BEACONASSController(rest.RestController):
+    @pecan.expose('json')
+    def put(self, data):
+        out_data = {"status" : "ok", "message" : "200 OK"}
+        delay_response()
+        return out_data
+
+class BEACONController(rest.RestController):
+    Asserted = BEACONASSController()
+
+class ENIDController(rest.RestController):
+    attr = BEACONController()
+
+class GRPController(rest.RestController):
+    enclosure_identify = ENIDController()
+
+class LEDController(rest.RestController):
+    groups = GRPController()
+
+#-------------------- SIMULATOR FOR RSETBOOT --------------------#
+
+class BOOTONESRCController(rest.RestController):
+    @pecan.expose('json')
+    def put(self, data):
+        req_ip = pecan.request.server_name
+        data_file_ip = data_file + '_' + req_ip
+
+        if not os.path.exists(data_file_ip):
+            shutil.copy(data_file, data_file_ip)
+
+        file_object = open(data_file_ip, 'r+')
+
+        try:
+            lines = file_object.readlines()
+        finally:
+            file_object.close()
+
+        for index in range(len(lines)):
+            if lines[index] == 'boot one time begin\n':
+                data_index = index + 2
+                break
+
+        file_object = open(data_file_ip, 'w+')
+
+        lines[data_index] = data + '\n'
+
+        try:
+            file_object.writelines(lines)
+        finally:
+            file_object.close()
+
+        out_data = {"status" : "ok", "message" : "200 OK"}
+        delay_response()
+        return out_data
+
+class BOOTONEENBController(rest.RestController):
+    @pecan.expose('json')
+    def put(self, data):
+        req_ip = pecan.request.server_name
+        data_file_ip = data_file + '_' + req_ip
+
+        if not os.path.exists(data_file_ip):
+            shutil.copy(data_file, data_file_ip)
+
+        file_object = open(data_file_ip, 'r+')
+
+        try:
+            lines = file_object.readlines()
+        finally:
+            file_object.close()
+
+        for index in range(len(lines)):
+            if lines[index] == 'boot one time begin\n':
+                data_index = index + 1
+                break
+
+        file_object = open(data_file_ip, 'w+')
+
+        lines[data_index] = str( data ) + '\n'
+
+        try:
+            file_object.writelines(lines)
+        finally:
+            file_object.close()
+
+        out_data = {"status" : "ok", "message" : "200 OK"}
+        delay_response()
+        return out_data
+
+class BOOTONEATTRController(rest.RestController):
+    BootSource = BOOTONESRCController()
+    Enabled = BOOTONEENBController()
+
+class BOOTONEController(rest.RestController):
+    @pecan.expose('json')
+    def get_data(self):
+        req_ip = pecan.request.server_name
+        data_file_ip = data_file + '_' + req_ip
+
+        if not os.path.exists(data_file_ip):
+            shutil.copy(data_file, data_file_ip)
+
+        file_object = open(data_file_ip, 'r+')
+
+        try:
+            lines = file_object.readlines()
+        finally:
+            file_object.close()
+
+        for index in range(len(lines)):
+            if lines[index] == 'boot one time begin\n':
+                enabled = lines[index +1].strip()
+                source  = lines[index +2].strip()
+                break
+
+        status_data = {"Enabled": enabled, "BootSource" : source}
+        return status_data
+
+    @pecan.expose('json')
+    def get(self):
+        data = self.get_data()
+        out_data = {"status" : "ok", "data" : data, "message" : "200 OK"}
+        delay_response()
+        return out_data
+
+    attr = BOOTONEATTRController()
+
+class BOOTSRCController(rest.RestController):
+    @pecan.expose('json')
+    def put(self, data):
+        req_ip = pecan.request.server_name
+        data_file_ip = data_file + '_' + req_ip
+
+        if not os.path.exists(data_file_ip):
+            shutil.copy(data_file, data_file_ip)
+
+        file_object = open(data_file_ip, 'r+')
+
+        try:
+            lines = file_object.readlines()
+        finally:
+            file_object.close()
+
+        for index in range(len(lines)):
+            if lines[index] == 'boot begin\n':
+                data_index = index + 1
+                break
+
+        file_object = open(data_file_ip, 'w+')
+
+        lines[data_index] = data + '\n'
+
+        try:
+            file_object.writelines(lines)
+        finally:
+            file_object.close()
+
+        out_data = {"status" : "ok", "message" : "200 OK"}
+        delay_response()
+        return out_data
+
+class BOOTATTRController(rest.RestController):
+    BootSource = BOOTSRCController()
+
+class BOOTController(rest.RestController):
+    @pecan.expose('json')
+    def get_data(self):
+        req_ip = pecan.request.server_name
+        data_file_ip = data_file + '_' + req_ip
+
+        if not os.path.exists(data_file_ip):
+            shutil.copy(data_file, data_file_ip)
+
+        file_object = open(data_file_ip, 'r+')
+
+        try:
+            lines = file_object.readlines()
+        finally:
+            file_object.close()
+
+        for index in range(len(lines)):
+            if lines[index] == 'boot begin\n':
+                text = lines[index +1].strip()
+                break
+
+        status_data = {"BootSource" : text}
+        return status_data
+
+    @pecan.expose('json')
+    def get(self):
+        data = self.get_data()
+        out_data = {"status" : "ok", "data" : data, "message" : "200 OK"}
+        delay_response()
+        return out_data
+
+    attr = BOOTATTRController()
+    one_time = BOOTONEController()
+
 class CNLHOST0Controller(rest.RestController):
-    boot_source = BOOTController()
+    @pecan.expose('json')
+    def get(self, arg):
+        if arg == 'enumerate':
+            boot_status = BOOTController().get_data()
+            boot_one_time = BOOTONEController().get_data()
+            status_data = {"/xyz/openbmc_project/control/host0/boot/one_time" : boot_one_time,
+                           "/xyz/openbmc_project/control/host0/boot" : boot_status}
+            out_data = {"status" : "ok", "data" : status_data, "message" : "200 OK"}
+            delay_response()
+            return out_data
+
+    boot = BOOTController()
 
 class CONTROLController(rest.RestController):
     host0 = CNLHOST0Controller()
 
+#-------------------- SIMULATOR FOR RSPCONFIG --------------------#
+
+class NETWORKController(rest.RestController):
+    @pecan.expose('json')
+    def get(self, arg):
+        if arg == 'enumerate':
+            req_ip = pecan.request.server_name
+            eth0_object = {"InterfaceName" : "eth0", "DHCPEnabled" : "0", "MACAddress" : "70:e2:84:14:28:d"}
+            ip_object = {"Type" : "xyz.openbmc_project.Network.IP.Protocol.IPv4", "Address" : req_ip, "PrefixLength" : 8, "Gateway" : "0.0.0.0"}
+            config_object = {"DefaultGateway" : "", "HostName" : "witherspoon"}
+            dhcp_object = {"DNSEnabled" : 1, "NTPEnabled" : 1, "HostNameEnabled" : 1}
+
+            status_data = {"/xyz/openbmc_project/network/eth0" : eth0_object,
+                           "/xyz/openbmc_project/network/config/dhcp" : dhcp_object,
+                           "/xyz/openbmc_project/network/eth0/ipv4/111111" : ip_object,
+                           "/xyz/openbmc_project/network/config" : config_object}
+
+            out_data = {"status" : "ok", "data" : status_data, "message" : "200 OK"}
+            delay_response()
+            return out_data
+
+
+#--------------------------------------------
+# PROJECT CONTROLLER
+#--------------------------------------------
 class OPENBMCController(rest.RestController):
     state = STATEController()
-    network = NETWORKController()
     inventory = INVENTORYController()
     software = SOFTWAREController()
     logging = LOGGINGController()
     sensors = SENSORSController()
+    led = LEDController()
     control = CONTROLController()
+    network = NETWORKController()
 
 class XYZController(rest.RestController): 
     openbmc_project = OPENBMCController()
@@ -697,7 +746,6 @@ def main(argv):
             print "Only constant and random are supported"
             sys.exit (1)
 
-    os.system('nc -l 2200 &')
     eventlet.monkey_patch()
     app = _make_app()
     port = 443 
