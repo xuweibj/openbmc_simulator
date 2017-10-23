@@ -422,7 +422,7 @@ class CLEARController(rest.RestController):
         return out_data
 
 class ACTIONController(rest.RestController):
-    clear = CLEARController()
+    deleteAll = CLEARController()
 
 class ENTRYController(rest.RestController):
     @pecan.expose('json')
