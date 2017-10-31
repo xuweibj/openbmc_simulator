@@ -134,8 +134,8 @@ if [[ $os =~ "Red Hat" ]] || [[ $os =~ "suse" ]]; then
 
     epel_check=`rpm -qa | grep epel`
     if [ -z $epel_check ]; then
-        url="https://dl.fedoraproject.org/pub/epel/7/ppc64le/e/"
-        epel_pkg=`curl $url | grep "epel-release" | awk -F '=' '{print $4}' | awk -F '>' '{print $1}' | sed 's/\"//g'`    
+        url="https://dl.fedoraproject.org/pub/epel/7/ppc64le/Packages/e/"
+        epel_pkg=`curl -s $url | grep "epel-release" | awk -F '=' '{print $4}' | awk -F '>' '{print $1}' | sed 's/\"//g'`    
         epel_url=${url}${epel_pkg}
         yum install $epel_url --nogpgcheck -y 1>/dev/null 2>&1
         if [ $? != 0 ]; then
