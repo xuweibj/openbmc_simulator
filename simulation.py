@@ -713,9 +713,16 @@ class LOGINController(rest.RestController):
             pecan.response.status = 401
         return out_data
 
+class LOGOUTController(rest.RestController):
+    @pecan.expose('json')
+    def post(self, data):
+        out_data = {"status" : "ok", "message" : "200 OK"}
+        return out_data
+
 class Root(object):
     xyz = XYZController()
     login = LOGINController()
+    logout = LOGOUTController()
 
 config = {
     'root': Root,
