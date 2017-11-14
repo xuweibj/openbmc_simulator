@@ -108,6 +108,10 @@ else
 fi
 
 if [ $delay_type ] && [ $delay_time ]; then
+    echo $delay_time | grep 'm' > /dev/null
+    if [ $? != 0 ]; then
+        delay_time=$(echo "0m$delay_time")
+    fi
     minute=`echo "$delay_time" | awk -F 'm' '{print $1}'`
     second=`echo "$delay_time" | awk -F 'm' '{print $2}'`
     delay_second=$((minute*60+second))
