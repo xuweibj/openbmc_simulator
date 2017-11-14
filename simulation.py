@@ -382,6 +382,60 @@ class SOFTWAREController(rest.RestController):
             out_data = {"status" : "ok", "data" : firm_data, "message" : "200 OK"}
             delay_response()
             return out_data
+        else :
+            req_ip = pecan.request.server_name
+            data_file_ip = data_file + '_' + req_ip
+
+            if not os.path.exists(data_file_ip):
+                shutil.copy(data_file, data_file_ip)
+
+            file_object = open(data_file_ip, 'r+')
+
+            try:
+                lines = file_object.readlines()
+            finally:
+                file_object.close()
+
+            for index in range(len(lines)):
+                if lines[index] == 'software begin\n':
+                    active_index = index + 1
+                    break
+
+            process_data = lines[active_index].strip()
+
+            file_object = open(data_file_ip, 'w+')
+
+            active_data = "xyz.openbmc_project.Software.Activation.Activations.Activating"
+            if lines[active_index] == '0\n':
+                lines[active_index] = '30\n'
+            elif lines[active_index] == '30\n':
+                lines[active_index] = '50\n'
+            elif lines[active_index] == '50\n':
+                lines[active_index] = '100\n'
+            else :
+                active_data = "xyz.openbmc_project.Software.Activation.Activations.Active"
+
+            try:
+                file_object.writelines(lines)
+            finally:
+                file_object.close()
+
+            if process_data == '100' :
+                status_data = {"Activation" : active_data, "Priority" : 0, "Purpose" : "xyz.openbmc_project.Software.Version.VersionPurpose.BMC"}
+            else :
+                status_data = {"Activation" : active_data, "Priority" : 0, "Purpose" : "xyz.openbmc_project.Software.Version.VersionPurpose.BMC", "Progress" : process_data}
+
+            out_data = {"status" : "ok", "data" : status_data, "message" : "200 OK"}
+            delay_response()
+            return out_data
+        
+
+    @pecan.expose('json')
+    def put(self, *args):
+        if args[2] == "RequestedActivation":
+            out_data = {"status" : "ok", "message" : "200 OK"}
+            delay_response()
+            return out_data
 
 class FANController(rest.RestController):
     @pecan.expose('json')
@@ -685,6 +739,72 @@ class NETWORKController(rest.RestController):
             delay_response()
             return out_data
 
+#-------------------- SIMULATOR FOR RSPCONFIG DUMP --------------------#
+
+class DUMPCRTController(rest.RestController):
+    @pecan.expose('json')
+    def post(self, data):
+        out_data = {"status" : "ok", "data" : 11, "message" : "200 OK"}
+        delay_response()
+        return out_data
+
+class DUMPDLTAController(rest.RestController):
+    @pecan.expose('json')
+    def post(self, data):
+        out_data = {"status" : "ok", "message" : "200 OK"}
+        delay_response()
+        return out_data
+
+class DUMPACTController(rest.RestController):
+    CreateDump = DUMPCRTController()
+    DeleteAll = DUMPDLTAController()
+
+class DUMPENTRYController(rest.RestController):
+    @pecan.expose('json')
+    def post(self, *args):
+        if args[2] == 'Delete':
+            out_data = {"status" : "ok", "message" : "200 OK"}
+            delay_response()
+        else :
+            description = "Not Found"
+            out_data = {"status" : "error", "data" : {"description" : description}, "message" : "404 Not Found"}
+            pecan.response.status = 404
+        return out_data    
+
+class DUMPController(rest.RestController):
+    @pecan.expose('json')
+    def get(self, arg):
+        if arg == 'enumerate':
+            req_ip = pecan.request.server_name
+            status_data = {"/xyz/openbmc_project/dump/entry/1" : {"Elapsed" : 1507228142, "Size" : 4980},
+                           "/xyz/openbmc_project/dump/entry/2" : {"Elapsed" : 1509653771, "Size" : 3752}}
+            out_data = {"status" : "ok", "data" : status_data, "message" : "200 OK"}
+            delay_response()
+            return out_data
+
+    action = DUMPACTController()
+    entry = DUMPENTRYController()
+
+
+#-------------------- SIMULATOR FOR RFLASH UPLOAD --------------------#
+
+class IMAGEController(rest.RestController):
+    def __init__(self, image):
+        self.image = image
+
+    @pecan.expose('json')
+    def put (self):
+        out_data = {"status" : "ok", "message" : "200 OK"}
+        delay_response()
+        return out_data
+
+class IMAGESController(rest.RestController):
+    @pecan.expose()
+    def _lookup(self, image, *remainder):
+        return IMAGEController(image), remainder
+
+class UPLOADController(rest.RestController):
+    image = IMAGESController()
 
 #--------------------------------------------
 # PROJECT CONTROLLER
@@ -698,6 +818,7 @@ class OPENBMCController(rest.RestController):
     led = LEDController()
     control = CONTROLController()
     network = NETWORKController()
+    dump = DUMPController()
 
 class XYZController(rest.RestController): 
     openbmc_project = OPENBMCController()
@@ -721,6 +842,7 @@ class LOGOUTController(rest.RestController):
 
 class Root(object):
     xyz = XYZController()
+    upload = UPLOADController()
     login = LOGINController()
     logout = LOGOUTController()
 
