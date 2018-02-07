@@ -66,7 +66,7 @@ class HOSTTRANSController(rest.RestController):
         finally:
             file_object.close()
 
-        out_data = {"status" : "ok", "message" : "200 OK"}
+        out_data = {"status" : "ok", "data": {}, "message" : "200 OK"}
         delay_response()
         return out_data
 
@@ -79,7 +79,7 @@ class BMCTRANSController(rest.RestController):
         if not os.path.exists(data_file_ip):
             shutil.copy(data_file, data_file_ip)
 
-        out_data = {"status" : "ok", "message" : "200 OK"}
+        out_data = {"status" : "ok", "data": {}, "message" : "200 OK"}
         delay_response()
         return out_data
 
@@ -115,7 +115,7 @@ class POWERTRANSController(rest.RestController):
         finally:
             file_object.close()
         
-        out_data = {"status" : "ok", "message" : "200 OK"}
+        out_data = {"status" : "ok", "data": {}, "message" : "200 OK"}
         delay_response()
         return out_data
 
@@ -433,7 +433,7 @@ class SOFTWAREController(rest.RestController):
     @pecan.expose('json')
     def put(self, *args):
         if args[2] == "RequestedActivation":
-            out_data = {"status" : "ok", "message" : "200 OK"}
+            out_data = {"status" : "ok", "data": {}, "message" : "200 OK"}
             delay_response()
             return out_data
 
@@ -471,7 +471,7 @@ class SENSORSController(rest.RestController):
 class CLEARController(rest.RestController):
     @pecan.expose('json')
     def post(self, data):
-        out_data = {"status" : "ok", "message" : "200 OK"}
+        out_data = {"status" : "ok", "data": {}, "message" : "200 OK"}
         delay_response()
         return out_data
 
@@ -506,7 +506,7 @@ class LOGGINGController(rest.RestController):
 class BEACONASSController(rest.RestController):
     @pecan.expose('json')
     def put(self, data):
-        out_data = {"status" : "ok", "message" : "200 OK"}
+        out_data = {"status" : "ok", "data": {}, "message" : "200 OK"}
         delay_response()
         return out_data
 
@@ -554,7 +554,7 @@ class BOOTONESRCController(rest.RestController):
         finally:
             file_object.close()
 
-        out_data = {"status" : "ok", "message" : "200 OK"}
+        out_data = {"status" : "ok", "data": {}, "message" : "200 OK"}
         delay_response()
         return out_data
 
@@ -588,7 +588,7 @@ class BOOTONEENBController(rest.RestController):
         finally:
             file_object.close()
 
-        out_data = {"status" : "ok", "message" : "200 OK"}
+        out_data = {"status" : "ok", "data": {}, "message" : "200 OK"}
         delay_response()
         return out_data
 
@@ -660,7 +660,7 @@ class BOOTSRCController(rest.RestController):
         finally:
             file_object.close()
 
-        out_data = {"status" : "ok", "message" : "200 OK"}
+        out_data = {"status" : "ok", "data": {}, "message" : "200 OK"}
         delay_response()
         return out_data
 
@@ -751,7 +751,7 @@ class DUMPCRTController(rest.RestController):
 class DUMPDLTAController(rest.RestController):
     @pecan.expose('json')
     def post(self, data):
-        out_data = {"status" : "ok", "message" : "200 OK"}
+        out_data = {"status" : "ok", "data": {}, "message" : "200 OK"}
         delay_response()
         return out_data
 
@@ -763,7 +763,7 @@ class DUMPENTRYController(rest.RestController):
     @pecan.expose('json')
     def post(self, *args):
         if args[2] == 'Delete':
-            out_data = {"status" : "ok", "message" : "200 OK"}
+            out_data = {"status" : "ok", "data": {}, "message" : "200 OK"}
             delay_response()
         else :
             description = "Not Found"
@@ -794,7 +794,7 @@ class IMAGEController(rest.RestController):
 
     @pecan.expose('json')
     def put (self):
-        out_data = {"status" : "ok", "message" : "200 OK"}
+        out_data = {"status" : "ok", "data": {}, "message" : "200 OK"}
         delay_response()
         return out_data
 
@@ -827,7 +827,7 @@ class LOGINController(rest.RestController):
     @pecan.expose('json')
     def post(self, data):
         if data == ["root", "0penBmc"]:
-            out_data = {"status" : "ok", "message" : "200 OK"}
+            out_data = {"status" : "ok", "data": {}, "message" : "200 OK"}
         else:
             description = "Invalid username or password"
             out_data = {"status" : "error", "data" : {"description" : description}, "message" : "401 Unauthorized"}
@@ -837,7 +837,7 @@ class LOGINController(rest.RestController):
 class LOGOUTController(rest.RestController):
     @pecan.expose('json')
     def post(self, data):
-        out_data = {"status" : "ok", "message" : "200 OK"}
+        out_data = {"status" : "ok", "data": {}, "message" : "200 OK"}
         return out_data
 
 class Root(object):

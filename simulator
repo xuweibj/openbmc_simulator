@@ -44,7 +44,7 @@ do
     esac
 done
 
-process=`ps aux | grep "simulator" | grep "python" | awk -F ' ' '{print $2}'`
+process=`ps aux | grep "simulation" | grep "python" | awk -F ' ' '{print $2}'`
 if [ $process ]; then
     echo "Kill existed simulator process"
     kill $process
